@@ -4,9 +4,53 @@ library(jsonlite)
 # default state - jump ball
 state <- 1
 
-# declare state probability matrix and rate vector
-P <- data.frame()
-R <- c()
+SimulateInterval <- function(input, runs, until) {
+
+  # build generator matrix
+  input <- jsonlite::fromJSON(input)
+  input.length <- length(input$gm)
+  G.temp <- sapply(input, function (x) {length (x) <- input.length; return (x)})
+  G <- matrix(unlist(G.temp, use.names=TRUE), ncol = input.length, byrow = TRUE, dimnames = list(dimnames(G.temp)[[1]], dimnames(G.temp)[[1]]))
+
+  # create exit rate vector
+  R <<- c(1:ncol(G))
+  for (i in 1:ncol(G)) {
+    R[i] <<- abs(G[i,i])
+  }
+
+  # create transition probability matrix
+  P <<- sweep(G, 1, R, "/")
+  P[P < 0] <<- 0
+
+  totals.home <- c()
+  totals.away <- c()
+  totals <- c()
+
+  # run simulations
+  for (i in 1:runs) {
+
+    # reset game clock and points tallies
+    game.clock <- 0
+    points.home <- 0
+    points.away <- 0
+
+    # simulate steps through matrix until game clock expires
+    while (game.clock <= until) {
+      step <- SimulateStep(1)
+      game.clock <- game.clock + step$time.elapsed
+      points.home <- points.home + step$points.home
+      points.away <- points.away + step$points.away
+    }
+
+    # record results of this simulation
+    totals.home <- c(totals.home, points.home)
+    totals.away <- c(totals.away, points.away)
+    totals <- c(totals, points.away+points.home)
+  }
+
+  return(jsonlite::toJSON(list("home_mean" = mean(totals.home), "home_sd" = sd(totals.home), "away_mean" = mean(totals.away), "away_sd" = sd(totals.away)), pretty=TRUE))
+
+}
 
 # function to simulate n steps of the transition matrix
 SimulateStep = function(steps)
@@ -54,52 +98,4 @@ SimulateStep = function(steps)
     state <<- new.state
   }
   return(list("time.elapsed" = exit.time, "points.home" = if (!is.null(points.home)) sum(points.home) else 0, "points.away" = if (!is.null(points.away)) sum(points.away) else 0))
-}
-
-SimulateInterval <- function(input, runs, until) {
-
-  # build generator matrix
-  input <- jsonlite::fromJSON(input)
-  input.length <- length(input$gm)
-  G.temp <- sapply(input, function (x) {length (x) <- input.length; return (x)})
-  G <- matrix(unlist(G.temp, use.names=TRUE), ncol = input.length, byrow = TRUE, dimnames = list(dimnames(G.temp)[[1]], dimnames(G.temp)[[1]]))
-
-  # create exit rate vector
-  R <<- c(1:ncol(G))
-  for (i in 1:ncol(G)) {
-    R[i] <<- abs(G[i,i])
-  }
-
-  # create transition probability matrix
-  P <<- sweep(G, 1, R, "/")
-  P[P < 0] <<- 0
-
-  totals.home <- c()
-  totals.away <- c()
-  totals <- c()
-
-  # run simulations
-  for (i in 1:runs) {
-
-    # reset game clock and points tallies
-    game.clock <- 0
-    points.home <- 0
-    points.away <- 0
-
-    # simulate steps through matrix until game clock expires
-    while (game.clock <= until) {
-      step <- SimulateStep(1)
-      game.clock <- game.clock + step$time.elapsed
-      points.home <- points.home + step$points.home
-      points.away <- points.away + step$points.away
-    }
-
-    # record results of this simulation
-    totals.home <- c(totals.home, points.home)
-    totals.away <- c(totals.away, points.away)
-    totals <- c(totals, points.away+points.home)
-  }
-
-  return(jsonlite::toJSON(list("home_mean" = mean(totals.home), "home_sd" = sd(totals.home), "away_mean" = mean(totals.away), "away_sd" = sd(totals.away)), pretty=TRUE))
-
 }
