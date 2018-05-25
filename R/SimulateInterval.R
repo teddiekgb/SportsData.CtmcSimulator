@@ -1,9 +1,6 @@
 # Load required packages
 library(jsonlite)
 
-# default state - jump ball
-state <- 1
-
 SimulateInterval <- function(input, runs, until) {
 
   # build generator matrix
@@ -34,12 +31,16 @@ SimulateInterval <- function(input, runs, until) {
     points.home <- 0
     points.away <- 0
 
+    # starting state
+    current.state <- 1
+
     # simulate steps through matrix until game clock expires
     while (game.clock <= until) {
-      step <- SimulateStep(1)
+      step <- SimulateStep(1, current.state)
       game.clock <- game.clock + step$time.elapsed
       points.home <- points.home + step$points.home
       points.away <- points.away + step$points.away
+      current.state = step$current.state
     }
 
     # record results of this simulation
@@ -53,7 +54,7 @@ SimulateInterval <- function(input, runs, until) {
 }
 
 # function to simulate n steps of the transition matrix
-SimulateStep = function(steps)
+SimulateStep = function(steps, current.state)
 {
   points.away <- c()
   points.home <- c()
@@ -62,8 +63,8 @@ SimulateStep = function(steps)
   for (i in 1:steps)
   {
     # cat("> Dist:", paste(round(c(trans[state,]), 2)), "\n");
-    new.state <- sample(1:ncol(P), 1, prob=P[state,]);
-    exit.time <- rexp(1, abs(R[state]));
+    new.state <- sample(1:ncol(P), 1, prob=P[current.state,]);
+    exit.time <- rexp(1, abs(R[current.state]));
     # check if new state resulted in points scored
 
     # if contains _MADE
@@ -95,7 +96,7 @@ SimulateStep = function(steps)
     }
 
     #cat("*", rownames(P)[state], "->", rownames(P)[newState], "in", exit_time, "seconds", "\n");
-    state <<- new.state
+
   }
-  return(list("time.elapsed" = exit.time, "points.home" = if (!is.null(points.home)) sum(points.home) else 0, "points.away" = if (!is.null(points.away)) sum(points.away) else 0))
+  return(list("current.state" = new.state, "time.elapsed" = exit.time, "points.home" = if (!is.null(points.home)) sum(points.home) else 0, "points.away" = if (!is.null(points.away)) sum(points.away) else 0))
 }
