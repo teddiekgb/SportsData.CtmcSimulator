@@ -1,5 +1,4 @@
 # Load required packages
-# test comment
 library(jsonlite)
 
 SimulateInterval <- function(input, runs, until) {
@@ -66,33 +65,31 @@ SimulateStep = function(steps, current.state)
     # cat("> Dist:", paste(round(c(trans[state,]), 2)), "\n");
     new.state <- sample(1:ncol(P), 1, prob=P[current.state,]);
     exit.time <- rexp(1, abs(R[current.state]));
+
     # check if new state resulted in points scored
 
-    # if contains _MADE
-    if (grepl('_MADE', rownames(P)[new.state])) {
-      # if contains _FT_ then add 1 point
-      if (grepl('_FT_', rownames(P)[new.state])) {
-        if (grepl('HOME_', rownames(P)[new.state])) {
-          points.home <- c(points.home, 1)
-        } else {
-          points.away <- c(points.away, 1)
-        }
+    # if contains a number
+    if (grepl('A', rownames(P)[new.state])) {
+      if (grepl('1', rownames(P)[new.state])) {
+        points.away <- c(points.away, 1)
       }
-      # if contains _2PT_ then add 2 points
-      if (grepl('_2PT_', rownames(P)[new.state])) {
-        if (grepl('HOME_', rownames(P)[new.state])) {
-          points.home <- c(points.home, 2)
-        } else {
-          points.away <- c(points.away, 2)
-        }
+      if (grepl('2', rownames(P)[new.state])) {
+        points.away <- c(points.away, 2)
       }
-      # if contains _3PT_ then add 3 points
-      if (grepl('_3PT_', rownames(P)[new.state])) {
-        if (grepl('HOME_', rownames(P)[new.state])) {
-          points.home <- c(points.home, 3)
-        } else {
-          points.away <- c(points.away, 3)
-        }
+      if (grepl('3', rownames(P)[new.state])) {
+        points.away <- c(points.away, 3)
+      }
+    }
+
+    if (grepl('B', rownames(P)[new.state])) {
+      if (grepl('1', rownames(P)[new.state])) {
+        points.home <- c(points.home, 1)
+      }
+      if (grepl('2', rownames(P)[new.state])) {
+        points.home <- c(points.home, 2)
+      }
+      if (grepl('3', rownames(P)[new.state])) {
+        points.home <- c(points.home, 3)
       }
     }
 
