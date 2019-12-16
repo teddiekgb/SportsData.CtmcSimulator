@@ -37,7 +37,8 @@ SimulateInterval <- function(input, runs, until) {
     # simulate steps through matrix until game clock expires
     while (game.clock <= until) {
       step <- SimulateStep(1, current.state)
-      game.clock <- game.clock + step$time.elapsed
+      #game.clock <- game.clock + step$time.elapsed
+      game.clock <- game.clock + 1
       points.home <- points.home + step$points.home
       points.away <- points.away + step$points.away
       current.state = step$current.state
