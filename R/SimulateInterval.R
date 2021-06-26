@@ -50,7 +50,9 @@ SimulateInterval <- function(input, runs, until) {
     totals <- c(totals, points.away+points.home)
   }
 
-  return(jsonlite::toJSON(list("success" = 1, "reason" = "", "data" = list("game_lower" = qnorm(.40, mean = mean(totals), sd = sd(totals)), "game_mean" = mean(totals), "game_sd" = sd(totals), "home_mean" = mean(totals.home), "home_sd" = sd(totals.home), "away_mean" = mean(totals.away), "away_sd" = sd(totals.away))), auto_unbox = TRUE))
+  game.lower <- qnorm(.40, mean = mean(totals), sd = sd(totals))
+  game.upper <- (totals-game.lower)+totals
+  return(jsonlite::toJSON(list("success" = 1, "reason" = "", "data" = list("game_lower" = game.lower, "game_upper" = game.upper, "game_mean" = mean(totals), "game_sd" = sd(totals), "home_mean" = mean(totals.home), "home_sd" = sd(totals.home), "away_mean" = mean(totals.away), "away_sd" = sd(totals.away))), auto_unbox = TRUE))
 
 }
 
