@@ -38,7 +38,9 @@ SimulateInterval <- function(input, runs, until) {
     while (game.clock <= until) {
       step <- SimulateStep(1, current.state)
       #game.clock <- game.clock + step$time.elapsed
-      game.clock <- game.clock + 1
+      if (step$is.new.possession == 1) {
+        game.clock <- game.clock + 1
+      }
       points.home <- points.home + step$points.home
       points.away <- points.away + step$points.away
       current.state = step$current.state
@@ -61,6 +63,7 @@ SimulateStep = function(steps, current.state)
 {
   points.away <- c()
   points.home <- c()
+  is.new.possession <- 0
 
   # Make x steps through the markov chain
   for (i in 1:steps)
@@ -69,8 +72,15 @@ SimulateStep = function(steps, current.state)
     new.state <- sample(1:ncol(P), 1, prob=P[current.state,]);
     exit.time <- rexp(1, abs(R[current.state]));
 
-    # check if new state resulted in points scored
+    # check if step resulted in a new possession
+    if (grepl('A', rownames(P)[current.state]) && grepl('B', rownames(P)[new.state])) {
+      is.new.possession <- 1
+    }
+    if (grepl('B', rownames(P)[current.state]) && grepl('A', rownames(P)[new.state])) {
+      is.new.possession <- 1
+    }
 
+    # check if new state resulted in points scored
     # if contains a number
     if (grepl('A', rownames(P)[new.state])) {
       if (grepl('1', rownames(P)[new.state])) {
@@ -99,5 +109,5 @@ SimulateStep = function(steps, current.state)
     #cat("*", rownames(P)[state], "->", rownames(P)[newState], "in", exit_time, "seconds", "\n");
 
   }
-  return(list("current.state" = new.state, "time.elapsed" = exit.time, "points.home" = if (!is.null(points.home)) sum(points.home) else 0, "points.away" = if (!is.null(points.away)) sum(points.away) else 0))
+  return(list("current.state" = new.state, "" = is.new.possession, "time.elapsed" = exit.time, "points.home" = if (!is.null(points.home)) sum(points.home) else 0, "points.away" = if (!is.null(points.away)) sum(points.away) else 0))
 }
