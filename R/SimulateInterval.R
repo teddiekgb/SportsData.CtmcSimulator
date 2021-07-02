@@ -109,5 +109,5 @@ SimulateStep = function(steps, current.state)
     #cat("*", rownames(P)[state], "->", rownames(P)[newState], "in", exit_time, "seconds", "\n");
 
   }
-  return(list("current.state" = new.state, "" = is.new.possession, "time.elapsed" = exit.time, "points.home" = if (!is.null(points.home)) sum(points.home) else 0, "points.away" = if (!is.null(points.away)) sum(points.away) else 0))
+  return(list("current.state" = new.state, "is.new.possession" = is.new.possession, "time.elapsed" = exit.time, "points.home" = if (!is.null(points.home)) sum(points.home) else 0, "points.away" = if (!is.null(points.away)) sum(points.away) else 0))
 }
